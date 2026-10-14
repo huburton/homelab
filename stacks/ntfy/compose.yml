@@ -1,0 +1,19 @@
+# Push notifications to the phone. Auth is deny-all (see server.yml.example): every publisher has its own
+# write-only user/token, only the phone account can read.
+services:
+  ntfy:
+    image: binwiederhier/ntfy:latest
+    container_name: ntfy
+    restart: unless-stopped
+    command: serve
+    ports:
+      - "8090:80"
+    volumes:
+      - ./server.yml:/etc/ntfy/server.yml:ro   # cp server.yml.example server.yml
+      - ${DATA_ROOT}/ntfy:/var/cache/ntfy     # cache.db, auth.db, attachments
+    networks:
+      - caddy-net
+
+networks:
+  caddy-net:
+    external: true

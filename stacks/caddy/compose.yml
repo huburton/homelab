@@ -1,0 +1,20 @@
+# Reverse proxy for every web service. Creates the shared `caddy-net` network that the other stacks join.
+services:
+  caddy:
+    image: caddy:latest
+    container_name: caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ../../caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ${DATA_ROOT}/caddy/data:/data       # certificates
+      - ${DATA_ROOT}/caddy/config:/config
+    networks:
+      - caddy-net
+
+networks:
+  caddy-net:
+    name: caddy-net
+    driver: bridge

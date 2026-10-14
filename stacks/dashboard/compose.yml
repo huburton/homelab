@@ -1,0 +1,43 @@
+# Personal dashboard (separate repository): static Astro front served by nginx + Bun/Hono API that reads and
+# writes the Markdown notes vault. Published behind Cloudflare Access. Images are built from that repository.
+services:
+  dashboard:
+    image: dashboard:latest
+    container_name: dashboard
+    restart: unless-stopped
+    ports:
+      - "8088:80"
+    networks:
+      - caddy-net
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O-", "http://127.0.0.1/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+  dashboard-api:
+    image: dashboard-api:latest
+    container_name: dashboard-api
+    restart: unless-stopped
+    environment:
+      - PORT=4000
+      - VAULT_ROOT=/vault
+    env_file:
+      - path: ./api.env           # API keys of the AI routers, ntfy token... (not in git)
+        required: false
+    volumes:
+      - ${NOTES_PATH}:/vault:rw
+      - /var/run/docker.sock:/var/run/docker.sock:ro   # container list on the status page
+    ports:
+      - "4000:4000"
+    networks:
+      - caddy-net
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O-", "http://127.0.0.1:4000/api/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+networks:
+  caddy-net:
+    external: true

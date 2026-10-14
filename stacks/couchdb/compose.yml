@@ -1,0 +1,19 @@
+# CouchDB backend for Obsidian LiveSync (notes synced to the phone, end-to-end encrypted by the plugin).
+services:
+  couchdb:
+    image: couchdb:3
+    container_name: couchdb
+    restart: unless-stopped
+    environment:
+      - COUCHDB_USER=${COUCHDB_USER}
+      - COUCHDB_PASSWORD=${COUCHDB_PASSWORD:?set COUCHDB_PASSWORD}
+    volumes:
+      - ${DATA_ROOT}/couchdb:/opt/couchdb/data
+    ports:
+      - "5984:5984"
+    networks:
+      - caddy-net
+
+networks:
+  caddy-net:
+    external: true

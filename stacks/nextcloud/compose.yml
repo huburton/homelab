@@ -1,0 +1,47 @@
+# File sync and share: Nextcloud + MariaDB + Redis.
+services:
+  nextcloud:
+    image: lscr.io/linuxserver/nextcloud:latest
+    container_name: nextcloud
+    restart: unless-stopped
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - PHP_MEMORY_LIMIT=512M
+      - UPLOAD_MAX_SIZE=10G
+    volumes:
+      - ${DATA_ROOT}/nextcloud/config:/config
+      - ${DATA_ROOT}/nextcloud/data:/data
+    ports:
+      - "4443:443"
+    depends_on:
+      - nextcloud-db
+      - nextcloud-redis
+    networks:
+      - caddy-net
+
+  nextcloud-db:
+    image: mariadb:10.6
+    container_name: nextcloud-db
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=${NEXTCLOUD_DB_ROOT_PASSWORD:?set NEXTCLOUD_DB_ROOT_PASSWORD}
+      - MYSQL_PASSWORD=${NEXTCLOUD_DB_PASSWORD:?set NEXTCLOUD_DB_PASSWORD}
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=nextcloud
+    volumes:
+      - ${DATA_ROOT}/nextcloud/db:/var/lib/mysql
+    networks:
+      - caddy-net
+
+  nextcloud-redis:
+    image: redis:alpine
+    container_name: nextcloud-redis
+    restart: unless-stopped
+    networks:
+      - caddy-net
+
+networks:
+  caddy-net:
+    external: true

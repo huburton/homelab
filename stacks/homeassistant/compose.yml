@@ -1,0 +1,18 @@
+# Home automation. Privileged for USB/Bluetooth device access.
+services:
+  homeassistant:
+    image: homeassistant/home-assistant:stable
+    container_name: homeassistant
+    restart: unless-stopped
+    privileged: true
+    ports:
+      - "8123:8123"    # LAN access
+    volumes:
+      - ${DATA_ROOT}/homeassistant/config:/config
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - caddy-net
+
+networks:
+  caddy-net:
+    external: true

@@ -1,0 +1,9 @@
+# /etc/exports on the server: the desktop's home directory lives on the server and is mounted over NFSv4.
+# Replace 10.0.0.0/24 with your LAN.
+#
+# async: the home export was sync at first; on a single SATA SSD under load a small-file CREATE took ~235 ms
+# and the desktop stalled. async brought it to ~0.3 ms. Accepted risk: a server crash can lose the last
+# seconds of writes (only one desktop writes at a time).
+/srv/export/home        10.0.0.0/24(rw,async,no_subtree_check,no_root_squash,fsid=0)
+# The notes vault is bind-mounted inside the export and stays sync (also written by Syncthing, CouchDB sync, git).
+/srv/export/home/notes  10.0.0.0/24(rw,sync,no_subtree_check,no_root_squash,nohide,fsid=11)

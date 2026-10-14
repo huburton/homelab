@@ -1,0 +1,19 @@
+# Password manager (Bitwarden-compatible server). Signups closed: accounts are invited from the admin page.
+services:
+  vaultwarden:
+    image: vaultwarden/server:latest
+    container_name: vaultwarden
+    restart: unless-stopped
+    environment:
+      - DOMAIN=https://vault.${DOMAIN}
+      # Prefer an Argon2 PHC string (`vaultwarden hash`) over a plain token.
+      - ADMIN_TOKEN=${VAULTWARDEN_ADMIN_TOKEN:?set VAULTWARDEN_ADMIN_TOKEN}
+      - SIGNUPS_ALLOWED=false
+    volumes:
+      - ${DATA_ROOT}/vaultwarden/data:/data
+    networks:
+      - caddy-net
+
+networks:
+  caddy-net:
+    external: true

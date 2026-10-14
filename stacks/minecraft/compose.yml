@@ -1,0 +1,32 @@
+# Modded Minecraft server (Forge 1.20.1 modpack, TerraFirmaGreg-Modern) for friends.
+# Java 21 pinned: the image's "latest" moved to Java 25, too new for Forge 1.20.1.
+services:
+  minecraft:
+    image: itzg/minecraft-server:java21
+    container_name: minecraft
+    restart: unless-stopped
+    tty: true
+    stdin_open: true
+    stop_grace_period: 2m    # time for the world save
+    ports:
+      - "25565:25565"
+      - "24454:24454/udp"    # Simple Voice Chat mod
+    environment:
+      EULA: ${MINECRAFT_EULA:-false}   # must be accepted by the server owner
+      ENABLE_RCON: "false"
+      GUI: "false"
+      MEMORY: ${MINECRAFT_MEMORY:-8G}
+      USE_AIKAR_FLAGS: "true"
+      CREATE_CONSOLE_IN_PIPE: "true"
+      TZ: ${TZ}
+      TYPE: forge
+      VERSION: 1.20.1
+      FORGE_VERSION: 47.4.13
+      SKIP_GENERIC_PACK_UPDATE_CHECK: "true"
+      OVERRIDE_SERVER_PROPERTIES: "false"
+      GENERIC_PACKS: TerraFirmaGreg-Modern-0.13.10-serverpack
+      GENERIC_PACKS_SUFFIX: .zip
+      GENERIC_PACKS_PREFIX: https://github.com/TerraFirmaGreg-Team/Modpack-Modern/releases/download/0.13.10/
+    volumes:
+      - ${DATA_ROOT}/minecraft/data:/data
+      - ${DATA_ROOT}/minecraft/backups:/backups

@@ -1,0 +1,19 @@
+# Camera surveillance (web UI + MJPEG streaming).
+services:
+  motioneye:
+    image: ccrisan/motioneye:master-amd64
+    container_name: motioneye
+    restart: unless-stopped
+    ports:
+      - "8765:8765"    # web UI (LAN)
+      - "8081:8081"    # video stream (LAN)
+    volumes:
+      - ${DATA_ROOT}/motioneye/config:/etc/motioneye
+      - ${DATA_ROOT}/motioneye/data:/var/lib/motioneye
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - caddy-net
+
+networks:
+  caddy-net:
+    external: true

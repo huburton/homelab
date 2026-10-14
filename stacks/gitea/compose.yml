@@ -1,0 +1,31 @@
+# Self-hosted Git (private repos, notes backup remote). SQLite, registration closed, sign-in required to browse.
+services:
+  gitea:
+    image: gitea/gitea:latest
+    container_name: gitea
+    restart: unless-stopped
+    environment:
+      - USER_UID=${PUID}
+      - USER_GID=${PGID}
+      - GITEA__database__DB_TYPE=sqlite3
+      - GITEA__server__DOMAIN=gitea.${DOMAIN}
+      - GITEA__server__SSH_DOMAIN=gitea.${DOMAIN}
+      - GITEA__server__ROOT_URL=https://gitea.${DOMAIN}/
+      - GITEA__server__SSH_PORT=${GITEA_SSH_PORT}
+      - GITEA__server__HTTP_PORT=3000
+      - GITEA__service__DISABLE_REGISTRATION=true
+      - GITEA__service__REQUIRE_SIGNIN_VIEW=true
+      - GITEA__security__INSTALL_LOCK=true
+    volumes:
+      - ${DATA_ROOT}/gitea:/data
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "3001:3000"                  # LAN access
+      - "${GITEA_SSH_PORT}:22"       # git over SSH
+    networks:
+      - caddy-net
+
+networks:
+  caddy-net:
+    external: true

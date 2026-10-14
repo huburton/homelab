@@ -1,0 +1,14 @@
+# ntfy server config. Copy to server.yml and set base-url to your own hostname.
+base-url: "https://ntfy.example.com"
+listen-http: ":80"
+behind-proxy: true              # behind Caddy + Cloudflare Tunnel: trust X-Forwarded-For for rate limiting
+cache-file: "/var/cache/ntfy/cache.db"
+cache-duration: "24h"
+attachment-cache-dir: "/var/cache/ntfy/attachments"
+auth-file: "/var/cache/ntfy/auth.db"
+auth-default-access: "deny-all" # nobody reads or writes without an account or token
+
+# Adding a publisher (one per script/service):
+#   docker exec -e NTFY_PASSWORD="$(openssl rand -base64 33)" ntfy ntfy user add <name>
+#   docker exec ntfy ntfy access <name> <topic> write-only
+#   docker exec ntfy ntfy token add --label <name> <name>      -> send "Authorization: Bearer <token>"

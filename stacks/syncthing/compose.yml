@@ -1,0 +1,26 @@
+# Syncthing: notes vault synced with a Windows machine, and the Docker data directory sent to a backup peer.
+services:
+  syncthing:
+    image: syncthing/syncthing:latest
+    container_name: syncthing
+    restart: unless-stopped
+    hostname: server
+    user: "0:0"    # root, to read every service's data for the backup folder
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+    volumes:
+      - ${DATA_ROOT}/syncthing:/var/syncthing/config
+      - ${DATA_ROOT}:/var/syncthing/Docker-Backup
+      - ${NOTES_PATH}:/var/syncthing/notes
+    ports:
+      - "8384:8384"          # web UI
+      - "22000:22000/tcp"    # sync protocol
+      - "22000:22000/udp"
+      - "21027:21027/udp"    # local discovery
+    networks:
+      - caddy-net
+
+networks:
+  caddy-net:
+    external: true

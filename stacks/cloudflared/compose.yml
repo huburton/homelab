@@ -1,0 +1,16 @@
+# Cloudflare Tunnel: an outbound connection to Cloudflare, so public hostnames reach Caddy without any port
+# forwarded on the home router. Hostnames -> http://caddy:80 are configured in the Cloudflare dashboard.
+services:
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:?set CLOUDFLARE_TUNNEL_TOKEN}
+    networks:
+      - caddy-net
+
+networks:
+  caddy-net:
+    external: true

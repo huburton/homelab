@@ -1,0 +1,58 @@
+# Caddy routes. Public traffic arrives through the Cloudflare Tunnel (cloudflared -> http://caddy:80), TLS is
+# terminated at Cloudflare's edge, hence the http:// site addresses. Containers are reached by name on caddy-net.
+# Replace example.com with your domain.
+
+(security_headers) {
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+	}
+}
+
+# Static portfolio site (separate nginx container, not part of this repo)
+http://example.com {
+	reverse_proxy website:80
+}
+
+# Vaultwarden (password manager)
+http://vault.example.com {
+	import security_headers
+	reverse_proxy vaultwarden:80
+}
+
+# Home Assistant
+http://ha.example.com {
+	reverse_proxy homeassistant:8123 {
+		header_up X-Real-IP {remote}
+	}
+}
+
+# MotionEye (needs WebSockets for streaming)
+http://motion.example.com {
+	reverse_proxy motioneye:8765
+}
+
+# Gitea
+http://gitea.example.com {
+	reverse_proxy gitea:3000
+}
+
+# CouchDB (Obsidian LiveSync)
+http://couchdb.example.com {
+	reverse_proxy couchdb:5984
+}
+
+# Personal dashboard: protected by Cloudflare Access (email one-time code) in front of the tunnel
+http://dashboard.example.com {
+	encode gzip zstd
+	import security_headers
+	reverse_proxy dashboard:80
+}
+
+# ntfy: flush immediately, notifications are streamed (SSE / long polling)
+http://ntfy.example.com {
+	reverse_proxy ntfy:80 {
+		flush_interval -1
+	}
+}

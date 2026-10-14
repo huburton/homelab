@@ -1,0 +1,11 @@
+.env
+*.env
+!.env.example
+caddy/Caddyfile
+stacks/ntfy/server.yml
+__pycache__/
+.pytest_cache/
+.venv/
+# ai/bench.py output
+ai/*.json
+ai/*.server.log
