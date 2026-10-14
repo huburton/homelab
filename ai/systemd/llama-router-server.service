@@ -1,0 +1,19 @@
+# System unit on the server: /etc/systemd/system/llama-router.service
+[Unit]
+Description=llama.cpp model router (server, RTX 2060)
+After=network-online.target
+Wants=network-online.target
+RequiresMountsFor=/srv/ai
+
+[Service]
+User=ai
+Group=ai
+WorkingDirectory=/srv/ai
+Environment=LD_LIBRARY_PATH=/srv/ai/llama.cpp/current
+Environment=LLAMA_CACHE=/srv/ai/cache
+ExecStart=/srv/ai/llama.cpp/current/llama-server --models-preset /srv/ai/presets.ini --models-max 2 --host 0.0.0.0 --port 8095 --api-key-file /srv/ai/api-key
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,58 @@
+#!/bin/bash
+# AI mode: pause the animated wallpaper (mpvpaper, ~1.5 GB of VRAM) so the big local model fits entirely in the
+# desktop GPU, then give the VRAM back to the wallpaper when done.
+# Usage: ai-mode on|off|toggle|status
+#
+# The wallpaper is the `wallpaper-video` user service (pause = static image, no GPU; resume waits for free VRAM).
+# Settings: LLM_ROUTER (default http://127.0.0.1:8080), LLM_KEY_FILE (default ~/.config/llm/api-key).
+FLAG="${XDG_RUNTIME_DIR:-/tmp}/ai-mode"
+ROUTER="${LLM_ROUTER:-http://127.0.0.1:8080}"
+KEY_FILE="${LLM_KEY_FILE:-$HOME/.config/llm/api-key}"
+# Also called by the status service (systemd: PATH without ~/.local/bin).
+export PATH="$HOME/.local/bin:$PATH"
+
+notify() { command -v notify-send >/dev/null && notify-send -a "AI mode" -i applications-science "$@"; true; }
+
+unload_models() {
+    # Free the VRAM before the wallpaper comes back (otherwise mpv falls back to CPU decoding).
+    local key; key=$(cat "$KEY_FILE" 2>/dev/null) || return 0
+    curl -s -m 3 -H "Authorization: Bearer $key" "$ROUTER/models" 2>/dev/null |
+        jq -r '.data[] | select(.status.value != "unloaded") | .id' 2>/dev/null |
+        while read -r model; do
+            curl -s -m 15 -H "Authorization: Bearer $key" -H 'Content-Type: application/json' \
+                -d "{\"model\": \"$model\"}" "$ROUTER/models/unload" >/dev/null
+        done
+}
+
+# One switch at a time: an "on" started during an "off" (~15 s: unload, wait for VRAM, restart) used to leave
+# the flag on with the wallpaper running, so the state looked inverted.
+exec 9>"${XDG_RUNTIME_DIR:-/tmp}/ai-mode.lock"
+flock 9
+
+action="$1"
+if [ "$action" = toggle ]; then
+    if [ -e "$FLAG" ]; then action=off; else action=on; fi
+fi
+
+case "$action" in
+    on)
+        # Idempotent on reality: even if the flag already exists, make sure the wallpaper is paused.
+        was_on=$([ -e "$FLAG" ] && echo 1)
+        touch "$FLAG"
+        if command -v wallpaper-video >/dev/null; then wallpaper-video pause; fi
+        [ -z "$was_on" ] && notify "AI mode on" "Animated wallpaper paused: the VRAM is free for the local model."
+        ;;
+    off)
+        rm -f "$FLAG"
+        unload_models
+        if command -v wallpaper-video >/dev/null; then wallpaper-video resume; fi
+        notify "AI mode off" "Animated wallpaper restarted."
+        ;;
+    status)
+        if [ -e "$FLAG" ]; then echo on; else echo off; fi
+        ;;
+    *)
+        echo "Usage: $0 on|off|toggle|status" >&2
+        exit 1
+        ;;
+esac

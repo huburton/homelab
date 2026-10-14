@@ -1,0 +1,13 @@
+# User unit on the desktop (status.py installed as ~/.local/bin/pc-status).
+[Unit]
+Description=pc-status: state and control of the desktop's local AI (dashboard AI page, job-offer judge)
+After=llama-router.service
+
+[Service]
+ExecStart=%h/.local/bin/pc-status
+Environment=AI_STATUS_SERVICES=llama-router:user
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

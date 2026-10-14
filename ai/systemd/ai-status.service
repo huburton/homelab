@@ -1,0 +1,15 @@
+# User unit on the server: same script as pc-status, pointed at the server router.
+[Unit]
+Description=ai-status: state and control of the server's local AI (dashboard AI page)
+After=network-online.target
+
+[Service]
+ExecStart=%h/.local/bin/ai-status
+Environment=AI_STATUS_ROUTER=http://127.0.0.1:8095
+Environment=AI_STATUS_KEY_FILE=/srv/ai/api-key
+Environment=AI_STATUS_SERVICES=llama-router:system
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,13 @@
+# User unit on the desktop: ~/.config/systemd/user/llama-router.service
+[Unit]
+Description=llama.cpp model router (desktop, RTX 5080)
+After=network-online.target
+
+[Service]
+Environment=LLAMA_CACHE=/opt/llm/cache
+ExecStart=/usr/local/bin/llama-server --models-preset %h/.config/llm/presets.ini --models-max 1 --host 0.0.0.0 --port 8080 --api-key-file %h/.config/llm/api-key
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

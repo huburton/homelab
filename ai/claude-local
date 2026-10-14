@@ -1,0 +1,40 @@
+#!/bin/bash
+# Claude Code pointed at the local llama.cpp router (Anthropic-compatible /v1/messages) instead of the cloud API.
+# Same interface, same CLAUDE.md / memories / hooks; no model request leaves the LAN.
+# Switches AI mode on for the session (big model fully in VRAM) if it was off, and back off at the end.
+# Usage: claude-local [claude arguments]      Smaller model: CLAUDE_LOCAL_MODEL=qwen3.5-9b claude-local
+MODEL="${CLAUDE_LOCAL_MODEL:-qwen3.8-27b-long}"
+ROUTER="${LLM_ROUTER:-http://127.0.0.1:8080}"
+KEY_FILE="${LLM_KEY_FILE:-$HOME/.config/llm/api-key}"
+KEY=$(cat "$KEY_FILE") || { echo "Local API key not found ($KEY_FILE)" >&2; exit 1; }
+systemctl --user is-active --quiet llama-router || systemctl --user start llama-router
+
+started_ai=0
+if [[ "$MODEL" == qwen3.8-27b* ]] && [ "$(ai-mode status)" = off ]; then
+    ai-mode on && started_ai=1
+fi
+cleanup() {
+    # Restore the wallpaper only if we paused it and no other local session is still running.
+    if [ "$started_ai" = 1 ] && [ "$(pgrep -fc '^bash .*/claude-local')" -le 1 ]; then
+        ai-mode off
+    fi
+}
+trap cleanup EXIT
+
+export ANTHROPIC_BASE_URL="$ROUTER"
+export ANTHROPIC_AUTH_TOKEN="$KEY"
+export ANTHROPIC_API_KEY=""
+export ANTHROPIC_MODEL="$MODEL"
+export ANTHROPIC_DEFAULT_OPUS_MODEL="$MODEL"
+export ANTHROPIC_DEFAULT_SONNET_MODEL="$MODEL"
+export ANTHROPIC_DEFAULT_HAIKU_MODEL="$MODEL"
+export CLAUDE_CODE_SUBAGENT_MODEL="$MODEL"
+export CLAUDE_LOCAL_MODEL="$MODEL"
+# Real context window of each preset (see presets/desktop.ini)
+CLAUDE_CODE_MAX_CONTEXT_TOKENS=$(case "$MODEL" in qwen3.5-9b) echo 32768 ;; qwen3.8-27b) echo 24576 ;; *) echo 65536 ;; esac)
+export CLAUDE_CODE_MAX_CONTEXT_TOKENS
+export CLAUDE_CODE_ATTRIBUTION_HEADER=0          # otherwise llama.cpp's KV cache is invalidated on every request
+export CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
+export API_TIMEOUT_MS=600000
+exec_claude="${CLAUDE_BIN:-$(command -v claude)}"
+"$exec_claude" "$@"
