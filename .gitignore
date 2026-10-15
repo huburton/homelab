@@ -9,3 +9,22 @@ __pycache__/
 # ai/bench.py output
 ai/*.json
 ai/*.server.log
+
+# secrets, keys and dumps: never commit
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+*.kdbx
+id_rsa*
+id_ed25519*
+id_ecdsa*
+credentials*.json
+secrets/
+*.sql
+*.dump
+*.sqlite
+*.sqlite3
+*.db
+*.bak
