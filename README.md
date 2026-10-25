@@ -159,8 +159,8 @@ scripts/check-compose.sh       compose validation
 - The personal dashboard's images (`dashboard`, `dashboard-api`) are built from a separate repository.
 - Hardware-specific parts (wallpaper service, screensaver, Hyprland) are only referenced by `ai-mode` and
   `status.py` through commands that are skipped when absent; they are not in this repository.
-- Backups: the data directory is shared as a Syncthing folder and the notes vault is committed to Gitea; there is no off-site,
-  versioned backup with tested restores yet.
+- Backups: since October 2026, encrypted restic snapshots of the essential data go to an off-site object store
+  every night (not part of this repository); photos and other large media are not covered yet.
 - Syncthing runs as root to read every service's data; a dedicated read-only backup user would be cleaner.
 - Built with the help of AI coding assistants (Claude Code), used the way I would use documentation and
   Stack Overflow; I can explain every design choice in this repository.
