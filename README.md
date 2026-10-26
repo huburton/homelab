@@ -1,5 +1,7 @@
 # homelab
 
+*[Version française](README.fr.md)*
+
 Infrastructure-as-code of my home server and of the local AI stack spread over my server and my desktop:
 Docker Compose stacks behind Caddy and a Cloudflare Tunnel, plus llama.cpp model routers with a small HTTP
 service to watch and drive them.
